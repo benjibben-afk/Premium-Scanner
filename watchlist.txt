@@ -1,0 +1,16 @@
+# One ticker per line. These are always scanned even if they fall outside the screener
+# (e.g. below the volume floor). Comments start with #.
+NFE
+SNBR
+ATYR
+GETY
+ALIT
+NAK
+GPRO
+ORBS
+BYND
+HUMA
+TE
+SPCE
+SIDU
+SNAP

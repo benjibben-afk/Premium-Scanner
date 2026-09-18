@@ -1,0 +1,7 @@
+ticker,date,note
+# Manual catalyst overrides. Yahoo only knows earnings dates; it misses drug readouts,
+# PDUFA dates, court rulings, shareholder votes, reverse-split effective dates.
+# Anything listed here inside an expiration window gets a RED flag on the board.
+# Format: TICKER,YYYY-MM-DD,short note
+EYPT,2026-10-01,LUCIA Phase 3 topline readout
+IBRX,2027-01-06,ANKTIVA sBLA PDUFA date

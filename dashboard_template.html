@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="900">
+<title>Premium Scanner</title>
+<style>
+  :root{--navy:#0b1f3a;--navy2:#132b4d;--navy3:#1b3660;--gold:#e8c46a;--gold2:#c9a447;--ink:#dfe6f0;--muted:#8fa3bf;
+        --a:#3ddc97;--b:#e8c46a;--c:#ff6b6b;--line:#24406b}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--navy);color:var(--ink);font:14px/1.45 "IBM Plex Sans","Segoe UI",system-ui,sans-serif}
+  header{padding:18px 20px 12px;border-bottom:2px solid var(--gold2);display:flex;flex-wrap:wrap;gap:8px 24px;align-items:baseline}
+  header h1{margin:0;font-size:22px;color:var(--gold);letter-spacing:.02em;font-weight:600}
+  header .stamp{color:var(--muted)}
+  header .stats{margin-left:auto;color:var(--muted)} header .stats b{color:var(--ink)}
+  .bar{display:flex;flex-wrap:wrap;gap:8px 14px;padding:12px 20px;background:var(--navy2);border-bottom:1px solid var(--line);align-items:center}
+  .bar label{color:var(--muted)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .seg button{background:transparent;color:var(--muted);border:0;padding:6px 12px;cursor:pointer;font:inherit}
+  .seg button.on{background:var(--gold);color:var(--navy);font-weight:600}
+  .bar input[type=text],.bar input[type=number]{background:var(--navy);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:inherit;width:110px}
+  .bar .chk{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+  .wrap{overflow-x:auto;padding:0 12px 40px}
+  table{width:100%;border-collapse:collapse;min-width:1050px;font-variant-numeric:tabular-nums}
+  th{position:sticky;top:0;background:var(--navy3);color:var(--gold);text-align:right;padding:9px 8px;font-weight:600;cursor:pointer;white-space:nowrap;border-bottom:1px solid var(--gold2)}
+  th.l,td.l{text-align:left}
+  th .arr{color:var(--muted);font-size:11px;margin-left:3px}
+  td{padding:8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  tr.row{cursor:pointer} tr.row:hover td{background:var(--navy2)}
+  .g{display:inline-block;width:22px;text-align:center;border-radius:4px;font-weight:700;color:var(--navy)}
+  .gA{background:var(--a)} .gB{background:var(--b)} .gC{background:var(--c)}
+  .put{color:#9fd3ff} .call{color:#ffd28a}
+  .flag{display:inline-block;background:#3a1622;color:var(--c);border:1px solid #6b2a3a;border-radius:4px;padding:0 5px;font-size:11px;margin-left:4px}
+  .roi.hit{color:var(--a);font-weight:700}
+  .up{color:var(--a)} .dn{color:var(--c)}
+  tr.detail td{background:var(--navy2);white-space:normal;color:var(--muted);padding:10px 14px 14px}
+  tr.detail b{color:var(--ink)}
+  .empty{padding:40px 20px;color:var(--muted);text-align:center}
+  footer{padding:14px 20px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+  @media (max-width:700px){header h1{font-size:18px} .bar{gap:8px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Premium Scanner</h1>
+  <span class="stamp" id="stamp"></span>
+  <span class="stats" id="stats"></span>
+</header>
+<div class="bar">
+  <span class="seg" id="tier"><button data-v="hot" class="on">3–10 days</button><button data-v="next">11–21 days</button><button data-v="all">All</button></span>
+  <span class="seg" id="side"><button data-v="all" class="on">Puts + calls</button><button data-v="put">Puts</button><button data-v="call">Calls</button></span>
+  <span class="seg" id="grade"><button data-v="A" class="on">A</button><button data-v="B" class="on">B</button><button data-v="C">C</button></span>
+  <label>Max price <input type="number" id="maxpx" step="0.5" placeholder="10"></label>
+  <label>Ticker <input type="text" id="find" placeholder="NAK"></label>
+  <label class="chk"><input type="checkbox" id="liqonly" checked> liquid only</label>
+</div>
+<div class="wrap">
+  <table>
+    <thead><tr>
+      <th class="l" data-k="grade">Gr</th><th class="l" data-k="sym">Ticker</th><th class="l" data-k="side">Side</th>
+      <th data-k="px">Price</th><th data-k="chg">Day</th><th data-k="exp">Exp</th><th data-k="dte">DTE</th>
+      <th data-k="strike">Strike</th><th data-k="delta">Δ</th><th data-k="bid">Bid/Ask</th><th data-k="oi">OI</th>
+      <th data-k="premium">Prem/ct</th><th data-k="collateral">Cash</th><th data-k="roi">ROI</th><th data-k="roi_ann">Ann.</th>
+      <th data-k="cushion">Cushion</th><th data-k="ivhv">IV/HV</th><th class="l" data-k="flags">Flags</th>
+    </tr></thead>
+    <tbody id="body"></tbody>
+  </table>
+  <div class="empty" id="empty" hidden>Nothing matches these filters. Loosen the grade or tier, or wait for the next run.</div>
+</div>
+<footer>Quotes from CBOE, ~15 minutes delayed. ROI = premium ÷ cash tied up (strike×100 for puts, price×100 for calls) for the life of the trade.
+A = 3–10 day window, ROI in the 3–10% band, IV above realized vol, delta ≤ .35, no red flags. B = tradeable but off-target on one of those.
+C = has a red flag. Always confirm the live chain and the catalyst calendar before you send an order.</footer>
+<script>
+const DATA = __DATA__;
+const rows = DATA.rows;
+document.getElementById('stamp').textContent = 'Updated ' + DATA.generated_et;
+const st = DATA.stats;
+document.getElementById('stats').innerHTML =
+  `<b>${st.universe}</b> screened · <b>${st.with_chains}</b> with options · <b>${st.a}</b> A · <b>${st.b}</b> B · <b>${st.c}</b> C`;
+
+const state = {tier:'hot', side:'all', grades:new Set(['A','B']), maxpx:null, find:'', liq:true, sortk:null, asc:true};
+const fmt = (v,d=2)=> v==null||isNaN(v) ? '—' : Number(v).toFixed(d);
+const pct = (v,d=1)=> v==null ? '—' : `<span class="${v>=0?'up':'dn'}">${v>0?'+':''}${Number(v).toFixed(d)}%</span>`;
+
+function seg(id, multi){
+  const el = document.getElementById(id);
+  el.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    if(multi){ b.classList.toggle('on'); state.grades = new Set([...el.querySelectorAll('button.on')].map(x=>x.dataset.v)); }
+    else { el.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); state[id]=b.dataset.v; }
+    render();
+  }));
+}
+seg('tier'); seg('side'); seg('grade', true);
+document.getElementById('maxpx').addEventListener('input',e=>{state.maxpx=e.target.value?+e.target.value:null;render();});
+document.getElementById('find').addEventListener('input',e=>{state.find=e.target.value.trim().toUpperCase();render();});
+document.getElementById('liqonly').addEventListener('change',e=>{state.liq=e.target.checked;render();});
+document.querySelectorAll('th[data-k]').forEach(th=>th.addEventListener('click',()=>{
+  const k=th.dataset.k; if(state.sortk===k) state.asc=!state.asc; else {state.sortk=k; state.asc = ['sym','side','grade','exp','flags'].includes(k);} render();
+}));
+
+function visible(){
+  let v = rows.filter(r =>
+    (state.tier==='all' || r.tier===state.tier) &&
+    (state.side==='all' || r.side===state.side) &&
+    state.grades.has(r.grade) &&
+    (state.maxpx==null || r.px<=state.maxpx) &&
+    (!state.find || r.sym.startsWith(state.find)) &&
+    (!state.liq || r.liquid));
+  if(state.sortk){
+    const k=state.sortk;
+    v.sort((a,b)=>{ let x=a[k], y=b[k]; if(Array.isArray(x)){x=x.length;y=y.length}
+      if(x==null) return 1; if(y==null) return -1;
+      return (x>y?1:x<y?-1:0)*(state.asc?1:-1); });
+  }
+  return v;
+}
+
+function render(){
+  const v = visible(), tb = document.getElementById('body');
+  document.querySelectorAll('th[data-k]').forEach(th=>{ th.querySelector('.arr')?.remove();
+    if(th.dataset.k===state.sortk){ const s=document.createElement('span'); s.className='arr'; s.textContent=state.asc?'▲':'▼'; th.appendChild(s);} });
+  document.getElementById('empty').hidden = v.length>0;
+  const T = DATA.config.roi;
+  tb.innerHTML = v.map((r,i)=>`
+   <tr class="row" data-i="${i}">
+    <td class="l"><span class="g g${r.grade}">${r.grade}</span></td>
+    <td class="l"><b>${r.sym}</b></td>
+    <td class="l ${r.side}">${r.side==='put'?'CSP':'CC'}</td>
+    <td>$${fmt(r.px)}</td><td>${pct(r.chg)}</td><td>${r.exp.slice(5)}</td><td>${r.dte}</td>
+    <td>$${r.strike}</td><td>${fmt(r.delta)}</td><td>${fmt(r.bid)}/${fmt(r.ask)}</td><td>${r.oi.toLocaleString()}</td>
+    <td>$${fmt(r.premium,0)}</td><td>$${fmt(r.collateral,0)}</td>
+    <td class="roi ${r.roi>=T.target_min_pct&&r.roi<=T.target_max_pct?'hit':''}">${fmt(r.roi,1)}%</td>
+    <td>${fmt(r.roi_ann,0)}%</td><td>${fmt(r.cushion,1)}%</td><td>${fmt(r.ivhv)}</td>
+    <td class="l">${(r.flags||[]).map(f=>`<span class="flag">${f}</span>`).join('')}</td>
+   </tr>`).join('');
+  tb.querySelectorAll('tr.row').forEach(tr=>tr.addEventListener('click',()=>toggle(tr, v[+tr.dataset.i])));
+}
+
+function toggle(tr, r){
+  const nx = tr.nextElementSibling;
+  if(nx && nx.classList.contains('detail')){ nx.remove(); return; }
+  const d = document.createElement('tr'); d.className='detail';
+  const side = r.side==='put'
+    ? `Sell the <b>${r.exp} $${r.strike} put</b> at ~$${fmt(r.mid)}. Robinhood locks <b>$${fmt(r.collateral,0)}</b>. Stock can fall <b>${fmt(r.cushion,1)}%</b> before assignment; breakeven if assigned <b>$${fmt(r.breakeven)}</b>.`
+    : `Buy 100 shares (~$${fmt(r.collateral,0)}) and sell the <b>${r.exp} $${r.strike} call</b> at ~$${fmt(r.mid)}. Strike is <b>${fmt(r.cushion,1)}%</b> above the current price; net cost basis <b>$${fmt(r.breakeven)}</b>.`;
+  d.innerHTML = `<td colspan="18">${r.name} — ${side}<br>
+    Greeks: delta ${fmt(r.delta)} (≈${Math.round(r.delta*100)}% chance it finishes in the money) · theta ${fmt(r.theta,4)}/day · vega ${fmt(r.vega,4)} · option IV ${fmt(r.iv,0)}% vs 30-day realized ${fmt(r.hv30,0)}% (IV/HV ${fmt(r.ivhv)}) · 52w $${fmt(r.lo52)}–$${fmt(r.hi52)} · 1m ${pct(r.ret1m)} · 3m ${pct(r.ret3m)} · next earnings ${r.next_earnings||'unknown'}
+    ${r.notes&&r.notes.length?'<br><b>Why flagged:</b> '+r.notes.join(' · '):''}</td>`;
+  tr.after(d);
+}
+render();
+</script>
+</body>
+</html>

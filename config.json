@@ -1,0 +1,45 @@
+{
+  "universe": {
+    "price_min": 0.50,
+    "price_max": 10.00,
+    "min_avg_volume": 500000,
+    "exchanges": ["NMS", "NYQ", "NGM", "NCM", "ASE"],
+    "always_include": "watchlist.txt"
+  },
+  "windows": {
+    "hot_dte": [3, 10],
+    "next_dte": [11, 21]
+  },
+  "selection": {
+    "delta_min": 0.15,
+    "delta_max": 0.40,
+    "ideal_delta": 0.25,
+    "min_bid": 0.03
+  },
+  "liquidity": {
+    "min_open_interest": 200,
+    "max_spread_pct_of_mid": 0.15,
+    "max_spread_abs": 0.05
+  },
+  "roi": {
+    "target_min_pct": 3.0,
+    "target_max_pct": 10.0,
+    "display_min_pct": 2.0,
+    "suspicious_above_pct": 12.0
+  },
+  "risk_flags": {
+    "catalyst_buffer_days": 1,
+    "sub_dollar_price": 1.00,
+    "falling_knife_3m_pct": -50,
+    "ivhv_rich": 1.0
+  },
+  "alerts": {
+    "email_on_new_a_grade": true,
+    "max_rows_in_email": 15
+  },
+  "output": {
+    "html": "docs/index.html",
+    "json": "docs/scan.json",
+    "state_dir": "state"
+  }
+}
