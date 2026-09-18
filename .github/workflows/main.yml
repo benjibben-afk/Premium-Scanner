@@ -1,33 +1,36 @@
 name: premium scan
-
+ 
 on:
   schedule:
-    # Every 30 min, 13:00-21:30 UTC, Mon-Fri. Covers 9:30am-4pm ET in both EST and EDT.
-    # GitHub cron can lag 5-15 min on the free tier; that's normal.
-     - cron: "7,37 13-21 * * 1-5"
-  workflow_dispatch:      # "Run workflow" button for manual runs
-
+    - cron: "7,37 13-21 * * 1-5"
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "state/**"
+  workflow_dispatch:
+ 
 permissions:
   contents: write
-
+ 
 concurrency:
   group: scan
   cancel-in-progress: false
-
+ 
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 28
     steps:
       - uses: actions/checkout@v4
-
+ 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-
+ 
       - run: pip install -r requirements.txt
-
+ 
       - name: Run scanner
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
@@ -35,7 +38,7 @@ jobs:
           ALERT_TO: ${{ secrets.ALERT_TO }}
           DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
         run: python scanner.py
-
+ 
       - name: Publish dashboard
         run: |
           git config user.name "cc-scanner"
