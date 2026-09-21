@@ -1,7 +1,8 @@
 {
+  "autoscan": true,
   "universe": {
     "price_min": 0.5,
-    "price_max": 10,
+    "price_max": 10.0,
     "min_avg_volume": 1000000,
     "exchanges": [
       "NMS",
@@ -34,16 +35,16 @@
     "max_spread_abs": 0.05
   },
   "roi": {
-    "target_min_pct": 3,
-    "target_max_pct": 10,
-    "display_min_pct": 2,
-    "suspicious_above_pct": 12
+    "target_min_pct": 3.0,
+    "target_max_pct": 10.0,
+    "display_min_pct": 2.0,
+    "suspicious_above_pct": 12.0
   },
   "risk_flags": {
     "catalyst_buffer_days": 1,
-    "sub_dollar_price": 1,
+    "sub_dollar_price": 1.0,
     "falling_knife_3m_pct": -50,
-    "ivhv_rich": 1
+    "ivhv_rich": 1.0
   },
   "alerts": {
     "email_on_new_a_grade": true,
